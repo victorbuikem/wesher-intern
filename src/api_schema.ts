@@ -8,9 +8,22 @@ export const bookSchema = z.object({
   ISBN: z.string(),
 });
 
+export const bookSchemaUpdate = z.object({
+  title: z.string().min(2, "The title has a minimum length of 2").optional(),
+  author: z.string().optional(),
+  category: z.string().optional(),
+  publicationYear: z.number().optional(),
+  ISBN: z.string().optional(),
+});
+
 export const authorSchema = z.object({
   name: z.string(),
   email: z.string().email(),
+});
+
+export const authorSchemaUpdate = z.object({
+  name: z.string().optional(),
+  email: z.string().email().optional(),
 });
 
 export const categorySchema = z.object({

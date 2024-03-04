@@ -21,8 +21,9 @@ export const category = pgTable("category", {
 export const book = pgTable("book", {
   id: text("id").$defaultFn(createId).notNull().primaryKey(),
   title: text("title").notNull().unique(),
-  author: text("author").notNull(),
-  // .references(() => author.name),
+  author: text("author")
+    .notNull()
+    .references(() => author.id),
   category: text("category").notNull(),
   // .references(() => category.name),
   isbn: text("isbn").notNull(),

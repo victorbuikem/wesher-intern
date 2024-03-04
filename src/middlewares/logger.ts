@@ -18,7 +18,7 @@ export const logger = (req: Request, res: Response, next: any) => {
     const responseTime = Date.now() - currentTime;
 
     console.log(
-      `Status: ${res.statusCode} |\n Response Time: ${responseTime}ms |\n Time since last Request:  ${reqType} =  ${timeSinceLatRequest}ms`
+      `Status: ${res.statusCode} |\nResponse Time: ${responseTime}ms |\nTime since last Request: ${reqType} = ${timeSinceLatRequest}ms`
     );
 
     original.call(this, body);
