@@ -2,7 +2,7 @@ import express from "express";
 import { authorSchema, authorSchemaUpdate } from "../api_schema";
 import { ZodError } from "zod";
 import { db } from "../database";
-import { author } from "../database/schema";
+import { author, book, category } from "../database/schema";
 import { eq } from "drizzle-orm";
 
 const router = express.Router();
@@ -48,6 +48,7 @@ router.route("/:author_id").get(async (req, res) => {
     const result = await db.query.author.findFirst({
       where: eq(author.id, author_id),
     });
+
     if (!result) {
       res.status(404).json({
         success: false,
@@ -55,9 +56,15 @@ router.route("/:author_id").get(async (req, res) => {
       });
       return;
     }
+
+    const authorBooks = await db.query.book.findMany({
+      where: eq(book.author, result.name),
+    });
+
+    const data = { ...result, books: authorBooks };
     res.status(200).json({
       success: true,
-      data: result,
+      data,
     });
   } catch (error) {}
 });

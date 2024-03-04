@@ -2,7 +2,7 @@ import express from "express";
 import { categorySchema, categorySchemaUpdate } from "../api_schema";
 import { ZodError } from "zod";
 import { db } from "../database";
-import { category } from "../database/schema";
+import { book, category } from "../database/schema";
 import { eq } from "drizzle-orm";
 
 const router = express.Router();
@@ -57,9 +57,15 @@ router.route("/:category_id").get(async (req, res) => {
       return;
     }
 
+    const categoryBooks = await db.query.book.findMany({
+      where: eq(book.category, result.name),
+    });
+
+    const data = { ...result, books: categoryBooks };
+
     res.status(200).json({
       success: true,
-      data: result,
+      data,
     });
   } catch (error) {
     console.log("Server Error", error);
