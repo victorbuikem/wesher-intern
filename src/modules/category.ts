@@ -1,57 +1,38 @@
 import express from "express";
-import { categorySchema } from "../api_schema";
+import { categorySchema, categorySchemaUpdate } from "../api_schema";
 import { ZodError } from "zod";
+import { db } from "../database";
+import { category } from "../database/schema";
+import { eq } from "drizzle-orm";
 
 const router = express.Router();
 
 router.route("/").get(async (req, res) => {
   try {
-    const getAllBooks = async () => {
-      return [
-        {
-          title: "50 Shades of Grey",
-          author: "Red",
-          category: "Romance",
-          publication_year: 1959,
-          isbn: "sjkcnjfnscj",
-        },
-        {
-          title: "50 Shades of Grey",
-          author: "Red",
-          category: "Romance",
-          publication_year: 1959,
-          isbn: "sjkcnjfnscj",
-        },
-        {
-          title: "50 Shades of Grey",
-          author: "Red",
-          category: "Romance",
-          publication_year: 1959,
-          isbn: "sjkcnjfnscj",
-        },
-      ];
-    };
+    const result = await db.query.category.findMany({});
 
     res.status(200).json({
       success: true,
-      data: await getAllBooks(),
+      data: result,
     });
   } catch (error) {
     console.log("Server Error", error);
     res.status(500).json({ success: true, error_msg: error });
   }
 });
+
 router.route("/create").post(async (req, res) => {
   try {
     const { name } = categorySchema.parse(req.body);
 
-    const createBook = async () => {
-      return {
+    const result = await db
+      .insert(category)
+      .values({
         name,
-      };
-    };
+      })
+      .returning();
 
-    res.status(200).json({ success: true, data: await createBook() });
+    res.status(200).json({ success: true, data: result[0] });
   } catch (error) {
     if (error instanceof ZodError) {
       res.status(422).json({ success: false, error_message: error.message });
@@ -59,20 +40,68 @@ router.route("/create").post(async (req, res) => {
     res.status(500).json({ success: false, error_msg: error });
   }
 });
-router.route("/:category_title").get(async (req, res) => {
+
+router.route("/:category_id").get(async (req, res) => {
   try {
-    const { category_title } = req.params;
-  } catch (error) {}
+    const { category_id } = req.params;
+
+    const result = await db.query.category.findFirst({
+      where: eq(category.id, category_id),
+    });
+
+    if (!result) {
+      res.status(404).json({
+        success: false,
+        error_msg: "Can't Find that category...Please confirm again",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    console.log("Server Error", error);
+    res.status(500).json({ success: true, error_msg: error });
+  }
 });
-router.route("/:category_title/update").put(async (req, res) => {
+
+router.route("/:category_id/update").put(async (req, res) => {
   try {
-    const { category_title } = req.params;
-  } catch (error) {}
+    const { category_id } = req.params;
+    const { name } = categorySchemaUpdate.parse(req.body);
+
+    const result = await db
+      .update(category)
+      .set({
+        name,
+      })
+      .returning();
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    console.log("Server Error", error);
+    res.status(500).json({ success: true, error_msg: error });
+  }
 });
-router.route("/:category_title/delete").delete(async (req, res) => {
+
+router.route("/:category_id/delete").delete(async (req, res) => {
   try {
-    const { category_title } = req.params;
-  } catch (error) {}
+    const { category_id } = req.params;
+
+    const result = await db
+      .delete(category)
+      .where(eq(category.id, category_id))
+      .returning();
+
+    res.status(204).json({ success: true, data: result });
+  } catch (error) {
+    console.log("Server Error", error);
+    res.status(500).json({ success: true, error_msg: error });
+  }
 });
 
 export default router;

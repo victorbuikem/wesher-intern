@@ -17,7 +17,7 @@ app.use(logger);
 //Routes
 app.use("/api/v1/book", bookRoute);
 app.use("/api/v1/author", authorRoute);
-app.use("/api/v1/catergory", categoryRoute);
+app.use("/api/v1/category", categoryRoute);
 
 app.use("*", (req, res) => {
   res.status(404).json({ message: "This Route Not Found" });

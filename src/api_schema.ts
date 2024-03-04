@@ -29,3 +29,7 @@ export const authorSchemaUpdate = z.object({
 export const categorySchema = z.object({
   name: z.string(),
 });
+
+export const categorySchemaUpdate = z.object({
+  name: z.string(),
+});

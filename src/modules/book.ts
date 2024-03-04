@@ -29,9 +29,9 @@ router.route("/create").post(async (req, res) => {
     const result = await db
       .insert(book)
       .values({
-        title: title.toLowerCase(),
-        author: author.toLowerCase(),
-        category: category.toLowerCase(),
+        title,
+        author,
+        category,
         publicationYear,
         isbn: ISBN,
       })
@@ -47,15 +47,22 @@ router.route("/create").post(async (req, res) => {
   }
 });
 
-router.route("/:book_title").get(async (req, res) => {
+router.route("/:book_id").get(async (req, res) => {
   try {
     // Hint: Book Title should be passed in lowercase with underscore to represent spaces
-    const { book_title } = req.params;
-    let formattedTitle = book_title.replace("_", " ");
+    const { book_id } = req.params;
 
     const result = await db.query.book.findFirst({
-      where: eq(book.title, formattedTitle),
+      where: eq(book.id, book_id),
     });
+
+    if (!result) {
+      res.status(404).json({
+        success: false,
+        error_msg: "We don't have that book",
+      });
+      return;
+    }
 
     res.status(200).json({
       success: true,
@@ -81,12 +88,11 @@ router.route("/:book_title").get(async (req, res) => {
 //   } catch (error) {}
 // });
 
-router.route("/:book_title/update").put(async (req, res) => {
+router.route("/:book_id/update").put(async (req, res) => {
   try {
-    const { book_title } = req.params;
+    const { book_id } = req.params;
     const { title, ISBN, author, category, publicationYear } =
       bookSchemaUpdate.parse(req.body);
-    let formattedTitle = book_title.replace("_", " ");
 
     const result = await db
       .update(book)
@@ -98,7 +104,7 @@ router.route("/:book_title/update").put(async (req, res) => {
         publicationYear,
         updated_at: new Date(),
       })
-      .where(eq(book.title, formattedTitle))
+      .where(eq(book.id, book_id))
       .returning();
 
     res.status(200).json({ success: true, data: result[0] });
@@ -107,14 +113,13 @@ router.route("/:book_title/update").put(async (req, res) => {
   }
 });
 
-router.route("/:book_title/delete").delete(async (req, res) => {
+router.route("/:book_id/delete").delete(async (req, res) => {
   try {
-    const { book_title } = req.params;
-    let formattedTitle = book_title.replace("_", " ");
+    const { book_id } = req.params;
 
     const result = await db
       .delete(book)
-      .where(eq(book.title, formattedTitle))
+      .where(eq(book.title, book_id))
       .returning();
 
     res.status(204).json({ success: true, data: result });

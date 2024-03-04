@@ -15,7 +15,7 @@ router.route("/create").post(async (req, res) => {
       .insert(author)
       .values({
         email,
-        name: name.toLowerCase(),
+        name,
       })
       .returning();
 
@@ -48,7 +48,13 @@ router.route("/:author_id").get(async (req, res) => {
     const result = await db.query.author.findFirst({
       where: eq(author.id, author_id),
     });
-
+    if (!result) {
+      res.status(404).json({
+        success: false,
+        error_msg: "Author Does Not Exist...Maybe it's a typo",
+      });
+      return;
+    }
     res.status(200).json({
       success: true,
       data: result,
@@ -81,7 +87,17 @@ router.route("/:author_id/update").put(async (req, res) => {
 router.route("/:author_id/delete").delete(async (req, res) => {
   try {
     const { author_id } = req.params;
-  } catch (error) {}
+
+    const result = await db
+      .delete(author)
+      .where(eq(author.id, author_id))
+      .returning();
+
+    res.status(204).json({ success: true, data: result });
+  } catch (error) {
+    console.log("Server Error", error);
+    res.status(500).json({ success: true, error_msg: error });
+  }
 });
 
 export default router;

@@ -8,6 +8,20 @@
       "when": 1709525394128,
       "tag": "0000_milky_frightful_four",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1709569005212,
+      "tag": "0001_clever_sprite",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1709570837953,
+      "tag": "0002_complete_black_panther",
+      "breakpoints": true
     }
   ]
 }
