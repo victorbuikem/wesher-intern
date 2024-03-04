@@ -1,10 +1,9 @@
-import express from "express";
-import dotenv from "dotenv";
-import cors from "cors";
 import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
+import express from "express";
 import { logger } from "./src/middlewares/logger";
-import bookRoute from "./src/modules/book";
 import authorRoute from "./src/modules/author";
+import bookRoute from "./src/modules/book";
 import categoryRoute from "./src/modules/category";
 
 dotenv.config();
@@ -16,7 +15,7 @@ app.use(cookieParser());
 app.use(logger);
 
 //Routes
-app.use("/api/v1/books", bookRoute);
+app.use("/api/v1/book", bookRoute);
 app.use("/api/v1/author", authorRoute);
 app.use("/api/v1/catergory", categoryRoute);
 

@@ -1,0 +1,13 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1709525394128,
+      "tag": "0000_milky_frightful_four",
+      "breakpoints": true
+    }
+  ]
+}
