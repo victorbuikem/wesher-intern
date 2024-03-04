@@ -1,9 +1,9 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import express from "express";
 import { ZodError } from "zod";
 import { bookSchema, bookSchemaUpdate } from "../api_schema";
 import { db } from "../database";
-import { book } from "../database/schema";
+import { book, author, category } from "../database/schema";
 
 const router = express.Router();
 
@@ -22,16 +22,57 @@ router.route("/").get(async (req, res) => {
 
 router.route("/create").post(async (req, res) => {
   try {
-    const { title, ISBN, author, category, publicationYear } = bookSchema.parse(
-      req.body
-    );
+    const {
+      title,
+      ISBN,
+      author: authorName,
+      category: categoryName,
+      publicationYear,
+    } = bookSchema.parse(req.body);
+
+    const isValidAuthor = await db.query.author.findFirst({
+      where: eq(author.name, authorName),
+    });
+
+    const isValidCategory = await db.query.category.findFirst({
+      where: eq(category.name, categoryName),
+    });
+
+    if (!isValidAuthor) {
+      res
+        .status(404)
+        .json({ success: false, error_msg: "This author doesn't exist" });
+      return;
+    }
+
+    if (!isValidCategory) {
+      const newCategory = await db
+        .insert(category)
+        .values({
+          name: categoryName,
+        })
+        .returning();
+
+      const result = await db
+        .insert(book)
+        .values({
+          title,
+          author: authorName,
+          category: newCategory[0].name,
+          publicationYear,
+          isbn: ISBN,
+        })
+        .returning();
+      res.status(200).json({ success: true, data: result[0] });
+      return;
+    }
 
     const result = await db
       .insert(book)
       .values({
         title,
-        author,
-        category,
+        author: authorName,
+        category: categoryName,
         publicationYear,
         isbn: ISBN,
       })
@@ -49,7 +90,6 @@ router.route("/create").post(async (req, res) => {
 
 router.route("/:book_id").get(async (req, res) => {
   try {
-    // Hint: Book Title should be passed in lowercase with underscore to represent spaces
     const { book_id } = req.params;
 
     const result = await db.query.book.findFirst({
@@ -73,21 +113,6 @@ router.route("/:book_id").get(async (req, res) => {
   }
 });
 
-// router.route("/:book_id").get(async (req, res) => {
-//   try {
-//     const { book_id } = req.params;
-
-//     const result = await db.query.book.findFirst({
-//       where: eq(book.id, book_id),
-//     });
-
-//     res.status(200).json({
-//       success: true,
-//       data: result,
-//     });
-//   } catch (error) {}
-// });
-
 router.route("/:book_id/update").put(async (req, res) => {
   try {
     const { book_id } = req.params;
@@ -97,10 +122,10 @@ router.route("/:book_id/update").put(async (req, res) => {
     const result = await db
       .update(book)
       .set({
-        title: title?.toLowerCase(),
+        title,
         isbn: ISBN,
-        author: author?.toLowerCase(),
-        category: category?.toLowerCase(),
+        author,
+        category,
         publicationYear,
         updated_at: new Date(),
       })
